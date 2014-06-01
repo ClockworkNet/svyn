@@ -14,6 +14,10 @@ def init_parser():
     return p
 
 
+def valid(otps, args):
+    pass
+
+
 def main():
     p = init_parser()
     opts, args = p.parse_args()
