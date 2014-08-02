@@ -15,7 +15,17 @@ MESSAGE_MISSING_CONFIG = "Config file expected at ~/.svynrc not found."
 
 
 def branch(s, args):
-    s.branch(args.name, args.message)
+    branch = s.branch(args.name, args.message)
+    if args.switch:
+        try:
+            s.switch(os.getcwd(), branch)
+        except SvynError as e:
+            print "Unable to switch: %s" % e
+            sys.exit(1)
+
+
+def find(s, args):
+    pass
 
 
 def init_optparser():
@@ -23,7 +33,7 @@ def init_optparser():
         description="Convenience wrapper for svn functions.")
     p.add_argument("--version", action="version", version='0.1.0')
 
-    subs = p.add_subparsers()
+    subs = p.add_subparsers(title="commands")
 
     branch_p = subs.add_parser(
         "branch",
@@ -41,8 +51,21 @@ def init_optparser():
         "--message",
         help="Add an additional message describing branch."
     )
-    branch_p.add_argument("name")
+    branch_p.add_argument(
+        "name",
+        help="Intended name of new branch."
+    )
     branch_p.set_defaults(func=branch)
+
+    find_p = subs.add_parser(
+        "find",
+        help="Searches ls of branch_dir for supplied string"
+    )
+    find_p.add_argument(
+        "search",
+        help="String to find."
+    )
+    find_p.set_defaults(func=find)
 
     return p
 
@@ -83,6 +106,7 @@ class Svyn(object):
 
     def branch(self, name, extra_message=None):
         """Copy an origin branch to a target specified by name."""
+
         message = "Branched: " + name
         if extra_message:
             message += os.linesep + extra_message
@@ -93,9 +117,20 @@ class Svyn(object):
 
         self.client.copy(copy_path, branch_path)
 
+        return branch_path
+
+    def switch(self, path, repo_url):
+        try:
+            self.client.switch(path, repo_url)
+        except pysvn.ClientError as e:
+            self.handle_client_error(e)
+
     def find_branch(self, search):
         """Searches a list of branches in branch_dir for input string."""
         pass
+
+    def handle_client_error(self, err):
+        raise SvynError(str(err))
 
     def get_log_message(self):
         return self.message
@@ -105,3 +140,7 @@ class Svyn(object):
 
     def get_copy_path(self):
         return os.path.join(self.root, self.copy_target)
+
+
+class SvynError(Exception):
+    pass
