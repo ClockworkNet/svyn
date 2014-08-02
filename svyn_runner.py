@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Convenience wrapper for running bootstrap directly from source tree."""
+"""Convenience wrapper for running svyn directly from source tree."""
 
 from svyn.svyn import main
 
