@@ -2,9 +2,10 @@
 
 import sys
 import os
-sys.path.insert(0, os.path.abspath('..'))
 import mock
 import unittest
+
+sys.path.insert(0, os.path.abspath('..'))
 from svyn.svyn import Svyn
 
 
@@ -13,7 +14,8 @@ class TestSvyn(unittest.TestCase):
     @mock.patch('svyn.svyn.pysvn.Client')
     def setUp(self, mock_client):
         self.config = {
-            "repo_root_dir": "svn+ssh://svnroot",
+            "repo_url": "svn+ssh://svnroot",
+            "root_dir": "test_code",
             "branches_dir": "test_branches",
             "copy_target_dir": "test_trunk"
         }
@@ -24,11 +26,13 @@ class TestSvyn(unittest.TestCase):
         mock_opts = mock.MagicMock()
         self.s.branch("new_branch", mock_opts)
         expected_copy = os.path.join(
-            self.config['repo_root_dir'],
+            self.config['repo_url'],
+            self.config['root_dir'],
             self.config['copy_target_dir']
         )
         expected_branch = os.path.join(
-            self.config['repo_root_dir'],
+            self.config['repo_url'],
+            self.config['root_dir'],
             self.config['branches_dir'],
             "new_branch"
         )

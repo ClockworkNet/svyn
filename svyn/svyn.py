@@ -24,8 +24,10 @@ def branch(s, args):
             sys.exit(1)
 
 
-def find(s, args):
-    pass
+def list(s, args):
+    branches = s.list(args.search)
+    for b in branches:
+        print b
 
 
 def overlap(s, args):
@@ -36,12 +38,19 @@ def init_optparser():
     p = argparse.ArgumentParser(
         description="Convenience wrapper for svn functions.")
     p.add_argument("--version", action="version", version='0.1.0')
+    p.add_argument(
+        "--config",
+        "-c",
+        default="default",
+        help="Config section to use for repo paths."
+    )
 
     subs = p.add_subparsers(title="commands")
 
     branch_p = subs.add_parser(
         "branch",
-        help="Create svn cp of copy_target to branches/<NAME>"
+        help="Create svn cp of copy_target to branches/<NAME> with default "
+             "message."
     )
     branch_p.add_argument(
         "-s",
@@ -61,15 +70,16 @@ def init_optparser():
     )
     branch_p.set_defaults(func=branch)
 
-    find_p = subs.add_parser(
-        "find",
-        help="Searches ls of branch_dir for supplied string"
+    list_p = subs.add_parser(
+        "list",
+        help="Lists current branches. Optionally search in them with -s"
     )
-    find_p.add_argument(
-        "search",
-        help="String to find."
+    list_p.add_argument(
+        "-s",
+        "--search",
+        help="String to search directory names for."
     )
-    find_p.set_defaults(func=find)
+    list_p.set_defaults(func=list)
 
     return p
 
@@ -87,10 +97,10 @@ def init_config():
 
 
 def main():
-    c = init_config()
     p = init_optparser()
+    c = init_config()
     args = p.parse_args()
-    s = Svyn(dict(c.items("svn")))
+    s = Svyn(dict(c.items(args.config)))
     # Execute command with options and arguments.
     args.func(s, args)
 
@@ -130,6 +140,21 @@ class Svyn(object):
         except pysvn.ClientError as e:
             self.handle_client_error(e)
 
+    def list(self, search):
+        res = self.client.list(
+            self.get_branch_path(''),
+            recurse=False,
+        )
+
+        branches = []
+        for (info, _) in res:
+            b = info.path.split(os.sep)[-1]
+            if search and not search in b:
+                continue
+            branches.append(b)
+
+        return branches
+
     def overlap(self, rev1, rev2):
         """Determines if any files have changed in both revisions."""
         pass
@@ -148,6 +173,7 @@ class Svyn(object):
 
     def touched(self, rev1, rev2, file):
         """Determines if a file has changed between two revisions."""
+        pass
 
     def find_branch(self, search):
         """Searches a list of branches in branch_dir for input string."""
@@ -175,16 +201,19 @@ class Svyn(object):
 
     def fetch_logs(self, dir, paths=False, start=None, end=None, limit=0):
         if start:
-            rev_start = pysvn.Revision(opt_revision_kind.number, start)
+            rev_start = pysvn.Revision(
+                pysvn.opt_revision_kind.number,
+                start
+            )
         else:
-            rev_start = pysvn.Revision(opt_revision_kind.head)
+            rev_start = pysvn.Revision(pysvn.opt_revision_kind.head)
 
         if end:
             rev_end = end
         else:
             rev_end = 0
 
-        rev_end = pysvn.Revision(opt_revision_kind.number, rev_end)
+        rev_end = pysvn.Revision(pysvn.opt_revision_kind.number, rev_end)
 
         opts = {
             'revision_start': rev_start,
@@ -200,7 +229,7 @@ class Svyn(object):
 
     def get_branch_path(self, name):
         return os.path.join(
-            self.repo_url,
+            self.repo,
             self.root,
             self.branches,
             name
@@ -208,7 +237,7 @@ class Svyn(object):
 
     def get_copy_path(self):
         return os.path.join(
-            self.repo_url,
+            self.repo,
             self.root,
             self.copy_target
         )
