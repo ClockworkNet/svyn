@@ -28,6 +28,10 @@ def find(s, args):
     pass
 
 
+def overlap(s, args):
+    pass
+
+
 def init_optparser():
     p = argparse.ArgumentParser(
         description="Convenience wrapper for svn functions.")
@@ -98,7 +102,8 @@ class Svyn(object):
         if client is None:
             client = pysvn.Client()
         self.client = client
-        self.root = cnf['repo_root_dir']
+        self.repo = cnf['repo_url']
+        self.root = cnf['root_dir']
         self.copy_target = cnf['copy_target_dir']
         self.branches = cnf['branches_dir']
 
@@ -125,6 +130,25 @@ class Svyn(object):
         except pysvn.ClientError as e:
             self.handle_client_error(e)
 
+    def overlap(self, rev1, rev2):
+        """Determines if any files have changed in both revisions."""
+        pass
+
+    def accumulate_changed_paths(self, rev1, rev2):
+        logs = self.fetch_logs(
+            self.get_copy_target_path(),  # Assuming want trunk changes - shady
+            start=rev2,
+            end=rev1,
+        )
+        changed_paths = set()
+        for l in logs:
+            changed_paths.update(p.path for p in l.changed_paths)
+
+        return changed_paths
+
+    def touched(self, rev1, rev2, file):
+        """Determines if a file has changed between two revisions."""
+
     def find_branch(self, search):
         """Searches a list of branches in branch_dir for input string."""
         pass
@@ -132,14 +156,62 @@ class Svyn(object):
     def handle_client_error(self, err):
         raise SvynError(str(err))
 
+    def get_branch_first_rev(self, branch):
+        """Finds the rev at which a branch was copied."""
+        pass
+
+    def get_branch_last_rev(self, branch):
+        """Finds the last rev at which a branch existed."""
+        logs = self.fetch_logs(
+            self.get_branch_path(''),
+            paths=True,
+            limit=100
+        )
+
+        for l in logs:
+            for p in l.changed_paths:
+                if branch in p.path:
+                    return l.revision.num
+
+    def fetch_logs(self, dir, paths=False, start=None, end=None, limit=0):
+        if start:
+            rev_start = pysvn.Revision(opt_revision_kind.number, start)
+        else:
+            rev_start = pysvn.Revision(opt_revision_kind.head)
+
+        if end:
+            rev_end = end
+        else:
+            rev_end = 0
+
+        rev_end = pysvn.Revision(opt_revision_kind.number, rev_end)
+
+        opts = {
+            'revision_start': rev_start,
+            'revision_end': rev_end,
+            'limit': limit,
+            'discover_changed_paths': paths,
+        }
+
+        return self.client.log(dir, **opts)
+
     def get_log_message(self):
         return self.message
 
     def get_branch_path(self, name):
-        return os.path.join(self.root, self.branches, name)
+        return os.path.join(
+            self.repo_url,
+            self.root,
+            self.branches,
+            name
+        )
 
     def get_copy_path(self):
-        return os.path.join(self.root, self.copy_target)
+        return os.path.join(
+            self.repo_url,
+            self.root,
+            self.copy_target
+        )
 
 
 class SvynError(Exception):
