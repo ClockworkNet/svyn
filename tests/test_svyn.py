@@ -6,12 +6,12 @@ import mock
 import unittest
 
 sys.path.insert(0, os.path.abspath('..'))
-from svyn.svyn import Svyn
+from svyn.svynworker import SvynWorker
 
 
 class TestSvyn(unittest.TestCase):
 
-    @mock.patch('svyn.svyn.pysvn.Client')
+    @mock.patch('svyn.svynworker.pysvn.Client')
     def setUp(self, mock_client):
         self.config = {
             "repo_url": "svn+ssh://svnroot",
@@ -20,7 +20,7 @@ class TestSvyn(unittest.TestCase):
             "copy_target_dir": "test_trunk"
         }
         self.mock_client = mock_client
-        self.s = Svyn(self.config, mock_client)
+        self.s = SvynWorker(self.config, mock_client)
 
     def test_svyn_branch(self):
         mock_opts = mock.MagicMock()
