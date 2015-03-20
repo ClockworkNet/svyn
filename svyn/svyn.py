@@ -54,20 +54,6 @@ def init_optparser():
     )
     branch_p.set_defaults(func=branch)
 
-    tag_p = subs.add_parser(
-        "tag",
-        help="Create copy of trunk at given rev to tags_dir"
-    )
-    tag_p.add_argument(
-        "trunk_rev",
-        help="The trunk revision to tag from."
-    )
-    tag_p.add_argument(
-        "version",
-        help="The version of the tag."
-    )
-    tag_p.set_defaults(func=tag)
-
     list_p = subs.add_parser(
         "list",
         help="Lists current branches. Optionally search in them with -s"
@@ -121,15 +107,7 @@ def branch(s, args):
             sys.exit(1)
 
 
-def tag(s, args):
-    pass
-
-
 def list(s, args):
     branches = s.list(args.search, args.mine)
     for b in branches:
         print b
-
-
-def overlap(s, args):
-    pass

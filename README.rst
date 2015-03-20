@@ -5,7 +5,7 @@ svyn is an svn helper. It allows you to specify some typical repository
 information in a config file and simplifies several common commands based on
 that information. If you typically branch from a shared trunk, or operate on
 several different repositories and would like a couple shortcuts, svyn might
-be for you. Right now branching, listing/searching branches and tagging are
+be for you. Right now branching and listing/searching branches are
 the entirety of its powers. Future features may include support for file history
 information and repository introspection.
 
