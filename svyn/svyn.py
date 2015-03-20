@@ -16,6 +16,7 @@ import sys
 
 MESSAGE_MISSING_CONFIG = "Config file expected at ~/.svynrc not found."
 MESSAGE_UNABLE_TO_SWITCH = "Unable to switch: {}"
+SVYN_CONF = "~/.svyn.conf"
 
 
 def init_optparser():
@@ -80,7 +81,7 @@ def init_config():
     """Expects a .svynrc in home folder."""
     cp = ConfigParser.SafeConfigParser()
     try:
-        with open(os.path.expanduser("~/.svynrc")) as config:
+        with open(os.path.expanduser(SVYN_CONF)) as config:
             cp.readfp(config)
     except IOError:
         print MESSAGE_MISSING_CONFIG
