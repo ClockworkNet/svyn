@@ -42,6 +42,8 @@ class SvynWorker(object):
             self.handle_client_error(e)
 
     def list(self, search=None, mine=False):
+        """List all branches."""
+
         res = self.client.list(
             self.get_branch_path(''),
             recurse=False,
@@ -76,17 +78,6 @@ class SvynWorker(object):
             changed_paths.update(p.path for p in l.changed_paths)
 
         return changed_paths
-
-    def touched(self, rev1, rev2, file):
-        """Determines if a file has changed between two revisions."""
-        pass
-
-    def handle_client_error(self, err):
-        raise SvynError(str(err))
-
-    def get_branch_first_rev(self, branch):
-        """Finds the rev at which a branch was copied."""
-        pass
 
     def get_branch_last_rev(self, branch):
         """Finds the last rev at which a branch existed."""
@@ -125,6 +116,17 @@ class SvynWorker(object):
         }
 
         return self.client.log(dir, **opts)
+
+    def touched(self, rev1, rev2, file):
+        """Determines if a file has changed between two revisions."""
+        pass
+
+    def get_branch_first_rev(self, branch):
+        """Finds the rev at which a branch was copied."""
+        pass
+
+    def handle_client_error(self, err):
+        raise SvynError(repr(err))
 
     def get_log_message(self):
         return self.message

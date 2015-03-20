@@ -6,6 +6,7 @@
 __version__ = "0.1.0"
 
 from .svynworker import SvynWorker, SvynError
+
 # Standard library
 import argparse
 import ConfigParser
@@ -14,32 +15,13 @@ import sys
 
 
 MESSAGE_MISSING_CONFIG = "Config file expected at ~/.svynrc not found."
-
-
-def branch(s, args):
-    branch = s.branch(args.name, args.message)
-    if args.switch:
-        try:
-            s.switch(os.getcwd(), branch)
-        except SvynError as e:
-            print "Unable to switch: %s" % e
-            sys.exit(1)
-
-
-def list(s, args):
-    branches = s.list(args.search, args.mine)
-    for b in branches:
-        print b
-
-
-def overlap(s, args):
-    pass
+MESSAGE_UNABLE_TO_SWITCH = "Unable to switch: {}"
 
 
 def init_optparser():
     p = argparse.ArgumentParser(
         description="Convenience wrapper for svn functions.")
-    p.add_argument("--version", action="version", version='0.1.0')
+    p.add_argument("--version", action="version", version="0.1.0")
     p.add_argument(
         "--config",
         "-c",
@@ -71,6 +53,20 @@ def init_optparser():
         help="Intended name of new branch."
     )
     branch_p.set_defaults(func=branch)
+
+    tag_p = subs.add_parser(
+        "tag",
+        help="Create copy of trunk at given rev to tags_dir"
+    )
+    tag_p.add_argument(
+        "trunk_rev",
+        help="The trunk revision to tag from."
+    )
+    tag_p.add_argument(
+        "version",
+        help="The version of the tag."
+    )
+    tag_p.set_defaults(func=tag)
 
     list_p = subs.add_parser(
         "list",
@@ -113,3 +109,27 @@ def main():
     s = SvynWorker(dict(c.items(args.config)))
     # Execute command with options and arguments.
     args.func(s, args)
+
+
+def branch(s, args):
+    branch = s.branch(args.name, args.message)
+    if args.switch:
+        try:
+            s.switch(os.getcwd(), branch)
+        except SvynError as e:
+            print MESSAGE_UNABLE_TO_SWITCH.format(repr(e))
+            sys.exit(1)
+
+
+def tag(s, args):
+    pass
+
+
+def list(s, args):
+    branches = s.list(args.search, args.mine)
+    for b in branches:
+        print b
+
+
+def overlap(s, args):
+    pass
