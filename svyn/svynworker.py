@@ -15,7 +15,7 @@ class SvynWorker(object):
         self.client = client
         self.repo = cnf['repo_url']
         self.root = cnf['root_dir']
-        self.copy_target = cnf['copy_target_dir']
+        self.copy_source = cnf['copy_source_dir']
         self.branches = cnf['branches_dir']
 
         self.client.callback_get_log_message = self.get_log_message
@@ -69,7 +69,7 @@ class SvynWorker(object):
 
     def accumulate_changed_paths(self, rev1, rev2):
         logs = self.fetch_logs(
-            self.get_copy_target_path(),  # Assuming want trunk changes - shady
+            self.get_copy_path(),  # Assuming want trunk changes - shady
             start=rev2,
             end=rev1,
         )
@@ -143,7 +143,7 @@ class SvynWorker(object):
         return os.path.join(
             self.repo,
             self.root,
-            self.copy_target
+            self.copy_source
         )
 
     def get_author(self):

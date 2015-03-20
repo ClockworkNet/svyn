@@ -20,10 +20,10 @@ setup(
     packages=["svyn"],
     entry_points={
         "console_scripts": ['svyn = svyn.svyn:main']
-        },
+    },
     version=version,
     description="Wrapper for pysvn, over the command-line.",
     long_description=long_descr,
     author="Lance T. Erickson",
     author_email="lancetarn@gmail.com",
-    )
+)
