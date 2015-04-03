@@ -117,14 +117,6 @@ class SvynWorker(object):
 
         return self.client.log(dir, **opts)
 
-    def touched(self, rev1, rev2, file):
-        """Determines if a file has changed between two revisions."""
-        pass
-
-    def get_branch_first_rev(self, branch):
-        """Finds the rev at which a branch was copied."""
-        pass
-
     def handle_client_error(self, err):
         raise SvynError(repr(err))
 

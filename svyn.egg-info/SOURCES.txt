@@ -1,0 +1,12 @@
+MANIFEST.in
+README.rst
+setup.py
+svyn/__init__.py
+svyn/__main__.py
+svyn/svyn.py
+svyn/svynworker.py
+svyn.egg-info/PKG-INFO
+svyn.egg-info/SOURCES.txt
+svyn.egg-info/dependency_links.txt
+svyn.egg-info/entry_points.txt
+svyn.egg-info/top_level.txt
