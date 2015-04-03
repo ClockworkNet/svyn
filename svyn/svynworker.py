@@ -121,7 +121,8 @@ class SvynWorker(object):
         raise SvynError(repr(err))
 
     def get_log_message(self):
-        return self.message
+        # pysvn seems to expect a tuple when this is registered as a callback
+        return True, self.message
 
     def get_branch_path(self, name):
         return os.path.join(
