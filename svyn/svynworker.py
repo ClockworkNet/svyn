@@ -117,6 +117,12 @@ class SvynWorker(object):
 
         return self.client.log(dir, **opts)
 
+    def handle_client_error(self, err):
+        raise SvynError(repr(err))
+
+    def get_log_message(self):
+        return self.message
+
     def get_branch_path(self, name):
         return os.path.join(
             self.repo,
