@@ -1,6 +1,9 @@
 
+from collections import OrderedDict
 import pwd
 import os
+import re
+from distutils.version import LooseVersion
 
 # Third-party
 import pysvn
@@ -17,6 +20,7 @@ class SvynWorker(object):
         self.root = cnf['root_dir']
         self.copy_source = cnf['copy_source_dir']
         self.branches = cnf['branches_dir']
+        self.releases = cnf['releases_dir']
 
         self.client.callback_get_log_message = self.get_log_message
 
@@ -35,6 +39,65 @@ class SvynWorker(object):
 
         return branch_path
 
+    def release(self, target_rev, extra_message=None):
+        release_name = self.get_next_release()
+        message = "TAG: " + release_name
+        if extra_message:
+            message += os.linesep + extra_message
+        self.message = message
+
+        rev = pysvn.Revision(pysvn.opt_revision_kind.number,
+                             target_rev)
+
+        release_path = self.get_release_path(release_name)
+        copy_path = self.get_copy_path()
+
+        self.client.copy(copy_path, release_path,
+                         src_revision=rev)
+
+        return release_path
+
+    def make_copy(self, name, extra_message=None):
+        pass
+
+    def get_next_release(self, type='point'):
+        """Calculates next release. Assumptions:
+        1. Versions follow major.minor.point pattern.
+        2. 'Subtags' denoted by alphabetic identifier
+        attached to point version, e.g. 3.10.12a."""
+        tags = self.client.list(
+            self.get_release_path(),
+            recurse=False
+            )
+        tags.sort(key=lambda tag: LooseVersion(tag))
+        last = tags[-1]
+        version_dict = OrderedDict()
+
+        (version_dict['major'], version_dict['minor'],
+         version_dict['point']) = last.split('.', 2)
+
+        sub = re.search('([a-z]+)$', version_dict['point'])
+        if sub:
+            version_dict['subtag'] = sub.group(0)
+            version_dict['point'] = version_dict['point'][:sub.start(1)]
+
+        if type == 'minor':
+            version_dict['point'] = '0'
+        elif type == 'major':
+            version_dict['minor'] = '0'
+            version_dict['point'] = '0'
+        if type is not 'subtag':
+            version_dict[type] = str(int(version_dict[type]) + 1)
+        else:
+            version_dict['subtag'] = self.increment_subtag(version_dict)
+            version_dict['point'] = ''.join([version_dict['point'],
+                                            version_dict['subtag']])
+        del(version_dict['subtag'])
+        return '.'.join(version_dict.values())
+
+    def increment_subtag(self, version_dict):
+        return chr(ord(version_dict['subtag']) + 1)
+
     def switch(self, path, repo_url):
         try:
             self.client.switch(path, repo_url)
@@ -45,7 +108,7 @@ class SvynWorker(object):
         """List all branches."""
 
         res = self.client.list(
-            self.get_branch_path(''),
+            self.get_branch_path(),
             recurse=False,
         )
 
@@ -82,7 +145,7 @@ class SvynWorker(object):
     def get_branch_last_rev(self, branch):
         """Finds the last rev at which a branch existed."""
         logs = self.fetch_logs(
-            self.get_branch_path(''),
+            self.get_branch_path(),
             paths=True,
             limit=100
         )
@@ -124,11 +187,19 @@ class SvynWorker(object):
         # pysvn seems to expect a tuple when this is registered as a callback
         return True, self.message
 
-    def get_branch_path(self, name):
+    def get_branch_path(self, name=''):
         return os.path.join(
             self.repo,
             self.root,
             self.branches,
+            name
+        )
+
+    def get_release_path(self, name=''):
+        return os.path.join(
+            self.repo,
+            self.root,
+            self.releases,
             name
         )
 
