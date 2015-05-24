@@ -4,7 +4,6 @@ import sys
 import os
 import mock
 import unittest
-import pysvn
 
 sys.path.insert(0, os.path.abspath('..'))
 from svyn.svynworker import SvynWorker
