@@ -51,7 +51,7 @@ class TestSvyn(unittest.TestCase):
         self.mock_client.list = mock.MagicMock()
         self.mock_client.list.return_value = self.releases
 
-        self.s.release(target_rev)
+        self.s.release(target_rev, "1.0.2")
 
         expected_copy = os.path.join(
             self.config['repo_url'],

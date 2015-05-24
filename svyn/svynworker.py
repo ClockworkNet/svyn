@@ -39,8 +39,7 @@ class SvynWorker(object):
 
         return branch_path
 
-    def release(self, target_rev, extra_message=None):
-        release_name = self.get_next_release()
+    def release(self, target_rev, release_name, extra_message=None):
         message = "TAG: " + release_name
         if extra_message:
             message += os.linesep + extra_message

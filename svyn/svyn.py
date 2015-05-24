@@ -74,6 +74,32 @@ def init_optparser():
     )
     list_p.set_defaults(func=list)
 
+    release_p = subs.add_parser(
+        "release",
+        help="Copy specified source revision to release directory. Will"
+        " automatically calculate release name based on specified type."
+    )
+    release_p.add_argument(
+        "-n",
+        "--name",
+        help="Overrides calculated release name."
+    )
+    release_p.add_argument(
+        "-f",
+        "--force",
+        help="Skip confirmations; JUST DO IT."
+    )
+    release_p.add_argument(
+        "revision",
+        help="Revision of source to use for release."
+    )
+    release_p.add_argument(
+        "type",
+        choices=["major", "minor", "point"],
+        help="Type of release to tag."
+    )
+    release_p.set_defaults(func=release)
+
     return p
 
 
@@ -112,3 +138,18 @@ def list(s, args):
     branches = s.list(args.search, args.mine)
     for b in branches:
         print b
+
+
+def release(s, args):
+    name = args.name if args.name else s.get_next_release(args.type)
+    if not args.force:
+        message = ("About to release `{}' at revision `{}' to location: `{}'."
+                   " Proceed? [y/n]")
+        message.format(s.get_copy_path(), args.revision,
+                       s.get_release_path(name))
+        res = raw_input(message)
+        if not res.tolower() == "y":
+            print "Aborting."
+            sys.exit(0)
+
+    s.release(args.revision, name)
