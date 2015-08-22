@@ -5,8 +5,9 @@ svyn is an svn helper. It allows you to specify some typical repository
 information in a config file and simplifies several common commands based on
 that information. If you typically branch from a shared trunk, or operate on
 several different repositories and would like a couple shortcuts, svyn might
-be for you. Right now branching and listing/searching branches are
-the entirety of its powers. Future features may include support for file history
+be for you. Right now branching and listing/searching branches, as well as
+release tagging are the entirety of its powers.
+Future features may include support for file history
 information and repository introspection.
 
 .svynrc
@@ -42,3 +43,13 @@ branches, which it would then copy to ``svn+ssh://svn/svnroot/some/project/sourc
 The section to be searched for the variables can be set for any svyn command
 with the ``-c`` flag, so ``svyn -c bar_section branch`` would then use variables
 from ``[bar_section]`` in the ``.svynrc`` file.
+
+Commands
+--------
+
+See `svyn -h` and `svyn {command} -h` for quick help
+
+* branch: Copies head of trunk to a branc, named by the command arg.
+* list: Lists current branches, -s to search -m for current user is last committer.
+* release: Copies specified trunk rev to release dir. Will auto-calculate release
+  number or can be overridden.
