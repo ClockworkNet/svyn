@@ -10,6 +10,12 @@ release tagging are the entirety of its powers.
 Future features may include support for file history
 information and repository introspection.
 
+Installation
+------------
+Sadly, `pysvn` is a terrible dependency to have. I am omitting it as it
+cannot be automatically supplied due to a host of platform and SVN version
+issues. You will need to get it wherever you want to use `svyn` yourself.
+
 .svynrc
 -------
 
