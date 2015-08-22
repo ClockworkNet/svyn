@@ -1,3 +1,0 @@
-[console_scripts]
-svyn = svyn.svyn:main
-
