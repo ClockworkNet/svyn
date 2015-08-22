@@ -21,6 +21,7 @@ setup(
     entry_points={
         "console_scripts": ['svyn = svyn.svyn:main']
     },
+    install_requires=['pysvn'],
     version=version,
     description="Wrapper for pysvn, over the command-line.",
     long_description=long_descr,

@@ -3,7 +3,7 @@
 """svyn.svyn: provides entry point main()."""
 
 
-__version__ = "0.8.0"
+__version__ = "0.1.0"
 
 from .svynworker import SvynWorker, SvynError
 
