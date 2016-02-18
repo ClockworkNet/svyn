@@ -12,7 +12,10 @@ import argparse
 import ConfigParser
 import os
 import sys
+import urlparse
 
+# Third-party
+import pysvn
 
 MESSAGE_MISSING_CONFIG = "Config file expected at ~/.svynrc not found."
 MESSAGE_UNABLE_TO_SWITCH = "Unable to switch: {}"
@@ -26,7 +29,6 @@ def init_optparser():
     p.add_argument(
         "--config",
         "-c",
-        default="default",
         help="Config section to use for repo paths."
     )
 
@@ -100,26 +102,52 @@ def init_optparser():
     )
     release_p.set_defaults(func=release)
 
+    register_p = subs.add_parser("register", help="Write a section to your "
+                                 "config for the current directory.")
+    register_p.set_defaults(func=register)
+
     return p
 
 
-def init_config():
+def init_config(config_section):
     """Expects a .svynrc in home folder."""
-    cp = ConfigParser.SafeConfigParser()
+    if config_section:
+        print repr(config_section)
+        cp = ConfigParser.SafeConfigParser()
+        try:
+            with open(os.path.expanduser(SVYN_CONF)) as config:
+                cp.readfp(config)
+        except IOError:
+            print MESSAGE_MISSING_CONFIG
+            sys.exit(1)
+        return dict(cp.items(config_section))
+
+    msg = "No repo info supplied, unable to determine from CWD"
     try:
-        with open(os.path.expanduser(SVYN_CONF)) as config:
-            cp.readfp(config)
-    except IOError:
-        print MESSAGE_MISSING_CONFIG
-        sys.exit(1)
-    return cp
+        client = pysvn.Client()
+        path, info = client.info2(os.getcwd(), recurse=False).pop()
+    except pysvn.ClientError:
+        raise SvynError(msg)
+    parsed = urlparse.urlparse(info.URL)
+    path_list = parsed.path.split('/')
+    cnf = {}
+    for name in [SvynWorker.DEF_BRANCHES_DIR, SvynWorker.DEF_TAG_DIR,
+                 SvynWorker.DEF_COPY_SOURCE_DIR]:
+        if name in path_list:
+            newpath = '/'.join(path_list[:path_list.index(name)])
+            to_unparse = (parsed.scheme, parsed.netloc, newpath, '', '', '')
+            cnf['base'] = urlparse.urlunparse(to_unparse)
+            cnf['branches'] = SvynWorker.DEF_BRANCHES_DIR
+            cnf['releases'] = SvynWorker.DEF_TAG_DIR
+            cnf['copy_source'] = SvynWorker.DEF_COPY_SOURCE_DIR
+    return cnf
 
 
 def main():
     p = init_optparser()
-    c = init_config()
     args = p.parse_args()
-    s = SvynWorker(dict(c.items(args.config)))
+    c = init_config(args.config)
+    s = SvynWorker(c)
     # Execute command with options and arguments.
     args.func(s, args)
 
@@ -153,3 +181,7 @@ def release(s, args):
             sys.exit(0)
 
     s.release(args.revision, name)
+
+
+def register(s, args):
+    pass

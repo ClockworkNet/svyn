@@ -12,15 +12,19 @@ import pysvn
 class SvynWorker(object):
     """Mediates pysvn calls in a nice api. I hope."""
 
-    def __init__(self, cnf, client=None):
+    DEF_BRANCHES_DIR = 'branches'
+    DEF_TAG_DIR = 'tags'
+    DEF_COPY_SOURCE_DIR = 'trunk'
+
+    def __init__(self, cnf=None, client=None):
         if client is None:
             client = pysvn.Client()
         self.client = client
-        self.repo = cnf['repo_url']
-        self.root = cnf['root_dir']
-        self.copy_source = cnf['copy_source_dir']
-        self.branches = cnf['branches_dir']
-        self.releases = cnf['releases_dir']
+
+        self.base = cnf['base']
+        self.copy_source = cnf['copy_source']
+        self.branches = cnf['branches']
+        self.releases = cnf['releases']
 
         self.client.callback_get_log_message = self.get_log_message
 
@@ -188,24 +192,21 @@ class SvynWorker(object):
 
     def get_branch_path(self, name=''):
         return os.path.join(
-            self.repo,
-            self.root,
+            self.base,
             self.branches,
             name
         )
 
     def get_release_path(self, name=''):
         return os.path.join(
-            self.repo,
-            self.root,
+            self.base,
             self.releases,
             name
         )
 
     def get_copy_path(self):
         return os.path.join(
-            self.repo,
-            self.root,
+            self.base,
             self.copy_source
         )
 
