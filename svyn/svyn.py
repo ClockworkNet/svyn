@@ -3,9 +3,8 @@
 """svyn.svyn: provides entry point main()."""
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
-from .svynworker import SvynWorker, SvynError
 
 # Standard library
 import argparse
@@ -20,6 +19,9 @@ try:
 except:
     print "'pysvn' package could not be imported; please ensure it is installed."
     sys.exit(1)
+
+# Local/Library
+from .svynworker import SvynWorker, SvynError
 
 MESSAGE_MISSING_CONFIG = "Config file expected at ~/.svyn.conf not found."
 MESSAGE_UNABLE_TO_SWITCH = "Unable to switch: {}"
