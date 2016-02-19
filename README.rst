@@ -2,8 +2,9 @@ svyn
 ====
 
 svyn is an svn helper. It allows you to specify some typical repository
-information in a config file and simplifies several common commands based on
-that information. If you typically branch from a shared trunk, or operate on
+information in a config file, or use an established convention, and
+simplifies several common commands based on that information.
+If you typically branch from a shared trunk, or operate on
 several different repositories and would like a couple shortcuts, svyn might
 be for you. Right now branching and listing/searching branches, as well as
 release tagging are the entirety of its powers.
@@ -12,24 +13,37 @@ information and repository introspection.
 
 Installation
 ------------
-Sadly, `pysvn` is a terrible dependency to have. I am omitting it as it
-cannot be automatically supplied due to a host of platform and SVN version
+Sadly, `pysvn` is a terrible dependency to have. I am omitting from the
+setup file as it cannot be automatically installed due to a host of platform and SVN version
 issues. You will need to get it wherever you want to use `svyn` yourself.
 
-.svynrc
--------
 
-The .svynrc file is in .ini format. It can handle multiple sections. Each section should specify
-four variables:
-* ``repo_url``: However you want to represent the base URL for your repo
-* ``root_dir``: What you think of as the root dir of your repo
-* ``branches_dir``: The path to where your branches are stored.
-* ``copy_source_dir``: The source directory from which branches will be copied.
-* ``release_dir``: The directory where numbered releases are stored
+Default Behavior
+----------------
 
-The ``branches``, ``copy_source_dir``, ``release_dir`` should be relative to the
-``root_dir``. The ``root_dir`` is essentially concatenated with the ``repo_url`` and
-then with one of the prior variables to generate the full address for svn.
+With no ``.svyn.conf``, svyn will examine the working directory as a working copy.
+It will split the path and look for the default ``branches``, ``copy_source`` and
+``release`` values (``branches``, ``trunk``, ``tags``) as path parts. It will then try
+to determine the working base of your repo and use the defaults for other operations. If
+you commonly work on portions of a repo that follow these conventions, you probably won't
+need to make a ``.svyn.conf``. If your working directory is not a working copy, svyn
+will failover to the ``default`` section of ``.svyn.conf``.
+
+.svyn.conf
+----------
+
+The .svyn.conf file contains optional repo information in .ini format. It
+is available should your repo naming scheme follow a different convention.
+It can handle multiple sections. Each section should specify
+three variables:
+* ``base``: Fully-qualified path (svn+ssh:// or file:///) to the deepest part of the subtree in which you are interested.
+* ``branches``: The path to where your branches are stored.
+* ``copy_source``: The source directory from which branches will be copied.
+* ``release``: The directory where numbered releases are stored
+
+The ``branches``, ``copy_source``, ``release`` should be relative to the
+``base``. The ``base`` is essentially concatenated with the with one of the
+other variables to generate the full address for svn.
 
 Example conf section
 --------------------
@@ -37,18 +51,17 @@ Example conf section
 ::
 
     [default]
-    repo_url = svn+ssh://svn/svnroot
-    root_dir = some/project/source
-    branches_dir = branches
-    copy_source_dir = trunk
+    base = svn+ssh://svn/svnroot/some/project/source
+    branches = splinters
+    copy_source = board
 
 In this case, ``svyn branch foo`` would use
-``svn+ssh://svn/svnroot/some/project/source/trunk`` as the source for new
-branches, which it would then copy to ``svn+ssh://svn/svnroot/some/project/source/branches/foo``
+``svn+ssh://svn/svnroot/some/project/source/board`` as the source for new
+branches, which it would then copy to ``svn+ssh://svn/svnroot/some/project/source/splinters/foo``
 
 The section to be searched for the variables can be set for any svyn command
 with the ``-c`` flag, so ``svyn -c bar_section branch`` would then use variables
-from ``[bar_section]`` in the ``.svynrc`` file.
+from ``[bar_section]`` in the ``.svyn.conf`` file.
 
 Commands
 --------

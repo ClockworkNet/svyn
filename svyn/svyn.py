@@ -15,9 +15,13 @@ import sys
 import urlparse
 
 # Third-party
-import pysvn
+try:
+    import pysvn
+except:
+    print "'pysvn' package could not be imported; please ensure it is installed."
+    sys.exit(1)
 
-MESSAGE_MISSING_CONFIG = "Config file expected at ~/.svynrc not found."
+MESSAGE_MISSING_CONFIG = "Config file expected at ~/.svyn.conf not found."
 MESSAGE_UNABLE_TO_SWITCH = "Unable to switch: {}"
 SVYN_CONF = "~/.svyn.conf"
 
@@ -110,36 +114,39 @@ def init_optparser():
 
 
 def init_config(config_section):
-    """Expects a .svynrc in home folder."""
-    if config_section:
-        print repr(config_section)
-        cp = ConfigParser.SafeConfigParser()
+    """Expects a .svyn.conf in home folder."""
+    info = None
+    if not config_section:
         try:
-            with open(os.path.expanduser(SVYN_CONF)) as config:
-                cp.readfp(config)
-        except IOError:
-            print MESSAGE_MISSING_CONFIG
-            sys.exit(1)
-        return dict(cp.items(config_section))
+            client = pysvn.Client()
+            path, info = client.info2(os.getcwd(), recurse=False).pop()
+        except pysvn.ClientError:
+            config_section = 'default'
 
-    msg = "No repo info supplied, unable to determine from CWD"
+    if info:
+        parsed = urlparse.urlparse(info.URL)
+        path_list = parsed.path.split('/')
+        cnf = {}
+        for name in [SvynWorker.DEF_BRANCHES_DIR, SvynWorker.DEF_TAG_DIR,
+                     SvynWorker.DEF_COPY_SOURCE_DIR]:
+            if name in path_list:
+                newpath = '/'.join(path_list[:path_list.index(name)])
+                to_unparse = (parsed.scheme, parsed.netloc, newpath,
+                              '', '', '')
+                cnf['base'] = urlparse.urlunparse(to_unparse)
+                cnf['branches'] = SvynWorker.DEF_BRANCHES_DIR
+                cnf['releases'] = SvynWorker.DEF_TAG_DIR
+                cnf['copy_source'] = SvynWorker.DEF_COPY_SOURCE_DIR
+                return cnf
+
+    cp = ConfigParser.SafeConfigParser()
     try:
-        client = pysvn.Client()
-        path, info = client.info2(os.getcwd(), recurse=False).pop()
-    except pysvn.ClientError:
-        raise SvynError(msg)
-    parsed = urlparse.urlparse(info.URL)
-    path_list = parsed.path.split('/')
-    cnf = {}
-    for name in [SvynWorker.DEF_BRANCHES_DIR, SvynWorker.DEF_TAG_DIR,
-                 SvynWorker.DEF_COPY_SOURCE_DIR]:
-        if name in path_list:
-            newpath = '/'.join(path_list[:path_list.index(name)])
-            to_unparse = (parsed.scheme, parsed.netloc, newpath, '', '', '')
-            cnf['base'] = urlparse.urlunparse(to_unparse)
-            cnf['branches'] = SvynWorker.DEF_BRANCHES_DIR
-            cnf['releases'] = SvynWorker.DEF_TAG_DIR
-            cnf['copy_source'] = SvynWorker.DEF_COPY_SOURCE_DIR
+        with open(os.path.expanduser(SVYN_CONF)) as config:
+            cp.readfp(config)
+    except IOError:
+        print MESSAGE_MISSING_CONFIG
+        sys.exit(1)
+    return dict(cp.items(config_section))
     return cnf
 
 
