@@ -33,7 +33,7 @@ Default Behavior
 ----------------
 
 With no ``.svyn.conf``, svyn will examine the working directory as a working copy.
-It will split the path and look for the default ``branches``, ``copy_source`` and
+It will split the repo URL path and look for the default ``branches``, ``copy_source`` and
 ``release`` values (``branches``, ``trunk``, ``tags``) as path parts. It will then try
 to determine the working base of your repo and use the defaults for other operations. If
 you commonly work on portions of a repo that follow these conventions, you probably won't
