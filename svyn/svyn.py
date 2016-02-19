@@ -77,8 +77,8 @@ def init_optparser():
         "--mine",
         action="store_true",
         default=False,
-        help="Filter listed branches to those where current user is "
-             "last author."
+        help="Filter listed branches to those where current posix "
+        "user is last author."
     )
     list_p.set_defaults(func=list)
 
@@ -107,10 +107,6 @@ def init_optparser():
         help="Type of release to tag."
     )
     release_p.set_defaults(func=release)
-
-    register_p = subs.add_parser("register", help="Write a section to your "
-                                 "config for the current directory.")
-    register_p.set_defaults(func=register)
 
     return p
 
@@ -190,7 +186,3 @@ def release(s, args):
             sys.exit(0)
 
     s.release(args.revision, name)
-
-
-def register(s, args):
-    pass
