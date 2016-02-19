@@ -27,6 +27,7 @@ setup(
     author="Lance T. Erickson",
     author_email="lancetarn@gmail.com",
     license="MIT",
+    url="https://github.com/ClockworkNet/svyn",
     classifiers=[
         "Environment :: Console",
         "Intended Audience :: Developers",
