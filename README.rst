@@ -7,7 +7,7 @@ simplifies several common commands based on that information.
 If you typically branch from a shared trunk, or operate on
 several different repositories and would like a couple shortcuts, svyn might
 be for you. Right now branching and listing/searching branches, as well as
-release tagging are the entirety of its powers.
+simple release tagging are the entirety of its powers.
 Future features may include support for file history
 information and repository introspection.
 
@@ -40,6 +40,7 @@ The .svyn.conf file contains optional repo information in .ini format. It
 is available should your repo naming scheme follow a different convention.
 It can handle multiple sections. Each section should specify
 three variables:
+
 * ``base``: Fully-qualified path (svn+ssh:// or file:///) to the deepest part of the subtree in which you are interested.
 * ``branches``: The path to where your branches are stored.
 * ``copy_source``: The source directory from which branches will be copied.
