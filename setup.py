@@ -22,9 +22,17 @@ setup(
         "console_scripts": ['svyn = svyn.svyn:main']
     },
     version=version,
-    description="Wrapper for pysvn, over the command-line.",
+    description="Convenience functions for svn",
     long_description=long_descr,
     author="Lance T. Erickson",
     author_email="lancetarn@gmail.com",
-    license="BSD 2-Clause",
+    license="MIT",
+    classifiers=[
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 2.7",
+        "Natural Language :: English",
+        "Topic :: Software Development :: Version Control"
+    ]
 )
