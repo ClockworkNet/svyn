@@ -118,8 +118,14 @@ def init_config(config_section):
         try:
             client = pysvn.Client()
             path, info = client.info2(os.getcwd(), recurse=False).pop()
-        except pysvn.ClientError:
-            config_section = 'default'
+        except pysvn.ClientError as e:
+            if 'not a working copy' in e.message:
+                print "Not in a working copy, looking for config..."
+                config_section = 'default'
+                pass
+            else:
+                print repr(e)
+                sys.exit(1)
 
     if info:
         parsed = urlparse.urlparse(info.URL)
