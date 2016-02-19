@@ -17,6 +17,10 @@ Sadly, `pysvn` is a terrible dependency to have. I am omitting from the
 setup file as it cannot be automatically installed due to a host of platform and SVN version
 issues. You will need to get it wherever you want to use `svyn` yourself.
 
+I recommend `downloading <http://pysvn.tigris.org/project_downloads.html>`_ the appropriate
+binaries for your svn and python version. ``svn --version`` and ``python --version`` will
+let you know what you need.
+
 
 Default Behavior
 ----------------
