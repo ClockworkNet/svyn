@@ -24,6 +24,7 @@ let you know what you need.
 Aside from that,
 
 ::
+
     pip install svyn
 
 should get you where you need to go.
