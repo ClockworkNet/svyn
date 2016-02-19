@@ -13,9 +13,9 @@ information and repository introspection.
 
 Installation
 ------------
-Sadly, `pysvn` is a difficult dependency to manage. I am omitting from the
+Sadly, ``pysvn`` is a difficult dependency to manage. I am omitting from the
 setup file as it cannot be automatically installed due to a host of platform and SVN version
-issues. You will need to get it wherever you want to use `svyn` yourself.
+issues. You will need to get it wherever you want to use ``svyn`` yourself.
 
 I recommend `downloading <http://pysvn.tigris.org/project_downloads.html>`_ the appropriate
 binaries for your svn and python version. ``svn --version`` and ``python --version`` will
@@ -78,7 +78,7 @@ from ``[bar_section]`` in the ``.svyn.conf`` file.
 Commands
 --------
 
-See `svyn -h` and `svyn {command} -h` for quick help
+See ``svyn -h`` and ``svyn {command} -h`` for quick help
 
 * branch: Copies head of trunk to a branc, named by the command arg.
 * list: Lists current branches, -s to search -m for current user is last committer.
