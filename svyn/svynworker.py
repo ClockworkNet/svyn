@@ -1,22 +1,26 @@
 
+# Standard library
 from collections import OrderedDict
-import pwd
+import logging
 import os
+import pwd
 import re
 from distutils.version import LooseVersion
 
 # Third-party
 import pysvn
 
+LOG = logging.getLogger(__name__)
+
 
 class SvynWorker(object):
-    """Mediates pysvn calls in a nice api. I hope."""
+    """Mediates pysvn calls"""
 
     DEF_BRANCHES_DIR = 'branches'
     DEF_TAG_DIR = 'tags'
     DEF_COPY_SOURCE_DIR = 'trunk'
 
-    def __init__(self, cnf=None, client=None):
+    def __init__(self, cnf, client=None):
         if client is None:
             client = pysvn.Client()
         self.client = client
@@ -39,6 +43,8 @@ class SvynWorker(object):
         branch_path = self.get_branch_path(name)
         copy_path = self.get_copy_path()
 
+        LOG.info("Creating branch: {} with message: {}"
+                 .format(branch_path, self.message))
         self.client.copy(copy_path, branch_path)
 
         return branch_path
@@ -55,6 +61,8 @@ class SvynWorker(object):
         release_path = self.get_release_path(release_name)
         copy_path = self.get_copy_path()
 
+        LOG.info("Making release at: {} with message: {}"
+                 .format(release_path, self.message))
         self.client.copy(copy_path, release_path,
                          src_revision=rev)
 
@@ -72,6 +80,10 @@ class SvynWorker(object):
             self.get_release_path(),
             recurse=False
             )
+        if not tags:
+            LOG.info("Found no tags. First tag?")
+            tags = ["0.0.0"]
+        LOG.debug("Tags: {}".format(tags))
         tags.sort(key=lambda tag: LooseVersion(tag))
         last = tags[-1]
         version_dict = OrderedDict()
@@ -102,6 +114,7 @@ class SvynWorker(object):
         return chr(ord(version_dict['subtag']) + 1)
 
     def switch(self, path, repo_url):
+        LOG.info("Switching to {}".format(path))
         try:
             self.client.switch(path, repo_url)
         except pysvn.ClientError as e:
@@ -115,14 +128,19 @@ class SvynWorker(object):
             recurse=False,
         )
 
+        if search:
+            LOG.info("Searching branches for '{}'".format(search))
+        if mine:
+            author = self.get_author()
+            LOG.info("Ensuring last commit by '{}'".format(author))
         branches = []
         for (info, _) in res:
             b = info.path.split(os.sep)[-1]
 
-            if search and not search in b:
+            if search and search not in b:
                 continue
 
-            if mine and not self.get_author() in info.last_author:
+            if mine and author not in info.last_author:
                 continue
 
             branches.append(b)
@@ -188,7 +206,9 @@ class SvynWorker(object):
 
     def get_log_message(self):
         # pysvn seems to expect a tuple when this is registered as a callback
-        return True, self.message
+        msg = (True, self.message)
+        self.message = None
+        return msg
 
     def get_branch_path(self, name=''):
         return os.path.join(

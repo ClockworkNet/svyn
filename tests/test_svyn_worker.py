@@ -14,11 +14,10 @@ class TestSvyn(unittest.TestCase):
     @mock.patch('svyn.svynworker.pysvn.Client')
     def setUp(self, mock_client):
         self.config = {
-            "repo_url": "svn+ssh://svnroot",
-            "root_dir": "test_code",
-            "branches_dir": "test_branches",
-            "copy_source_dir": "test_trunk",
-            "releases_dir": "test_tags"
+            "base": "svn+ssh://svnroot/test_code",
+            "branches": "test_branches",
+            "copy_source": "test_trunk",
+            "releases": "test_tags"
         }
         self.mock_client = mock_client
         self.s = SvynWorker(self.config, mock_client)
@@ -30,14 +29,12 @@ class TestSvyn(unittest.TestCase):
         mock_opts = mock.MagicMock()
         self.s.branch("new_branch", mock_opts)
         expected_copy = os.path.join(
-            self.config['repo_url'],
-            self.config['root_dir'],
-            self.config['copy_source_dir']
+            self.config['base'],
+            self.config['copy_source']
         )
         expected_branch = os.path.join(
-            self.config['repo_url'],
-            self.config['root_dir'],
-            self.config['branches_dir'],
+            self.config['base'],
+            self.config['branches'],
             "new_branch"
         )
 
@@ -54,14 +51,12 @@ class TestSvyn(unittest.TestCase):
         self.s.release(target_rev, "1.0.2")
 
         expected_copy = os.path.join(
-            self.config['repo_url'],
-            self.config['root_dir'],
-            self.config['copy_source_dir']
+            self.config['base'],
+            self.config['copy_source']
         )
         expected_release = os.path.join(
-            self.config['repo_url'],
-            self.config['root_dir'],
-            self.config['releases_dir'],
+            self.config['base'],
+            self.config['releases'],
             "1.0.2"
         )
 

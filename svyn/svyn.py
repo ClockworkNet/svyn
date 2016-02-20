@@ -1,14 +1,11 @@
 
 
 """svyn.svyn: provides entry point main()."""
-
-
-__version__ = "0.1.2"
-
-
 # Standard library
+from __future__ import print_function, absolute_import
 import argparse
 import ConfigParser
+import logging
 import os
 import sys
 import urlparse
@@ -17,11 +14,17 @@ import urlparse
 try:
     import pysvn
 except:
-    print "'pysvn' package could not be imported; please ensure it is installed."
+    print("'pysvn' package could not be imported; "
+          "please ensure it is installed.")
     sys.exit(1)
 
 # Local/Library
 from .svynworker import SvynWorker, SvynError
+
+__version__ = "0.1.2"
+
+logging.basicConfig()
+LOG = logging.getLogger("svyn")
 
 MESSAGE_MISSING_CONFIG = "Config file expected at ~/.svyn.conf not found."
 MESSAGE_UNABLE_TO_SWITCH = "Unable to switch: {}"
@@ -31,12 +34,14 @@ SVYN_CONF = "~/.svyn.conf"
 def init_optparser():
     p = argparse.ArgumentParser(
         description="Convenience wrapper for svn functions.")
-    p.add_argument("--version", action="version", version="0.1.0")
+    p.add_argument("--version", action="version", version=__version__)
     p.add_argument(
         "--config",
         "-c",
         help="Config section to use for repo paths."
     )
+    p.add_argument("-v", "--verbose", help="If you like output, we got output",
+                   action="store_true")
 
     subs = p.add_subparsers(title="commands")
 
@@ -120,14 +125,15 @@ def init_config(config_section):
             path, info = client.info2(os.getcwd(), recurse=False).pop()
         except pysvn.ClientError as e:
             if 'not a working copy' in e.message:
-                print "Not in a working copy, looking for config..."
+                LOG.debug("Not in a working copy, looking for config...")
                 config_section = 'default'
                 pass
             else:
-                print repr(e)
+                LOG.error(e.message)
                 sys.exit(1)
 
     if info:
+        LOG.debug("Found repo at URL: {}".format(info.URL))
         parsed = urlparse.urlparse(info.URL)
         path_list = parsed.path.split('/')
         cnf = {}
@@ -148,7 +154,7 @@ def init_config(config_section):
         with open(os.path.expanduser(SVYN_CONF)) as config:
             cp.readfp(config)
     except IOError:
-        print MESSAGE_MISSING_CONFIG
+        print(MESSAGE_MISSING_CONFIG)
         sys.exit(1)
     return dict(cp.items(config_section))
     return cnf
@@ -157,6 +163,8 @@ def init_config(config_section):
 def main():
     p = init_optparser()
     args = p.parse_args()
+    if args.verbose:
+        LOG.setLevel(logging.DEBUG)
     c = init_config(args.config)
     s = SvynWorker(c)
     # Execute command with options and arguments.
@@ -168,15 +176,16 @@ def branch(s, args):
     if args.switch:
         try:
             s.switch(os.getcwd(), branch)
+            LOG.debug("Switched to {}".format(branch))
         except SvynError as e:
-            print MESSAGE_UNABLE_TO_SWITCH.format(repr(e))
+            LOG.error(MESSAGE_UNABLE_TO_SWITCH.format(e.message))
             sys.exit(1)
 
 
 def list(s, args):
     branches = s.list(args.search, args.mine)
     for b in branches:
-        print b
+        print(b)
 
 
 def release(s, args):
@@ -186,9 +195,9 @@ def release(s, args):
                    " Proceed? [y/n]")
         message.format(s.get_copy_path(), args.revision,
                        s.get_release_path(name))
-        res = raw_input(message)
+        res = raw_input(message).trim()
         if not res.tolower() == "y":
-            print "Aborting."
+            print("Aborting.")
             sys.exit(0)
 
     s.release(args.revision, name)
